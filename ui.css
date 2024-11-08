@@ -1,4 +1,4 @@
-#library {
+#ui {
     border: 1px solid white;
     width: 30%;
     text-align: center;
@@ -13,18 +13,13 @@
     transition:0.2s;
 }
 
-/* Login标题的颜色控制 */
-
-#library h1 {
-    color: white;
-}
 
 /* 对输入窗口进行修改 */
-#library .form .item p {
+#ui .form .item p {
     font-size: 18px; /* 修改按钮文字的大小 */
     color: white;
 }
-#library .form .item input{
+#ui .form .item input{
     width: auto; /* 设置合适的宽度 */
     border: 0; /* 首先将边界取消，方便下面修改下部边界宽度 */
     border-bottom: 5px solid white; /* 将下边界进行修改，显示出横线效果 */
@@ -35,7 +30,7 @@
 }
 
 /* 对button进行美化 */
-#library button {
+#ui .button input{
     /* 设置合适的按钮的长和宽 */
     width: 150px; 
     /* height: 30px; */
@@ -53,6 +48,12 @@
     transition:0.2s;
     /* 设置按钮背景为透明 */
     background:rgba(0,0,0,0);   
+}
+
+#ui .forgot_password a{
+    text-align: right;
+    margin-top: 20px;
+    color: white;
 }
 
 #nav{
