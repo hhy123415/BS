@@ -29,10 +29,18 @@
 	<div id="ui">
 		<form action="#">
 			<div class="form">
-				<div class="item">
-					<p>账户: <input type="text"></p>
-					<p>密码: <input type="text"></p>
-				</div>
+				<table>
+				<tr>
+					<td class="td_left"><label for="username">用户名</label></td>
+					<td class="td_right"><input type="text" name="username" placeholder="请输入用户名" id="username">
+					</td>
+				</tr>
+				<tr>
+					<td class="td_left"><label for="password">密码</label></td>
+					<td class="td_right"><input type="password" name="password" placeholder="请输入密码" id="password">
+					</td>
+				</tr>
+				</table>
 			</div>
 			<div class="button">
 				<a href="index.html">
@@ -42,7 +50,6 @@
 			<div class="forgot_password">
 				<a href="">忘记密码</a>
 				<a href="regist.html">注册账号</a>
-				<a href="1.0/index.html">帮助</a>
 			</div>
 		</form>
 	</div>
