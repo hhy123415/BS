@@ -6,20 +6,29 @@
 	<link rel="icon" href="/picture/me.ico?">
 	<title>商品比较网站</title>
 	<link rel="stylesheet" href="ui.css">
-	<style>
-		body {
-			background: url(picture/c.jpg) no-repeat center center fixed;
-			/*兼容浏览器版本*/
-			-webkit-background-size: cover;
-			-o-background-size: cover;
-			background-size: cover;
-		}
-	</style>
-
-
 </head>
 
 <body>
+	<!-- 实现顶部导航栏功能 -->
+	<div id="nav">
+		<ul class="item">
+			<li class="cur"><a href="/home.html">首页</a></li>
+			<li><a href="" target="_blank">我的用户</a></li>
+		</ul>
+	</div>
+
+	<div id="ui">
+		<form action="../fetch" method="POST">
+			<div class="form">
+				<div class="item">
+					<p>请输入要搜索的商品</p>
+					<input placeholder="商品名字" name="product" type="text" color="white">
+				</div>
+			</div><br>
+			<button type="submit">搜索</button>
+		</form>
+	</div>
+
 </body>
 
 </html>

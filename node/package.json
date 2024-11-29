@@ -11,8 +11,14 @@
   "license": "ISC",
   "dependencies": {
     "alert-node": "^5.0.3",
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
     "express": "^4.21.1",
+    "got": "^14.4.4",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "puppeteer": "^23.8.0"
   }
 }

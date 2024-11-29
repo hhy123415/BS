@@ -3,58 +3,85 @@
     width: 35%;
     text-align: center;
     margin: 0 auto;
-    margin-top: 10%;  /* 高度调整 */
+    margin-top: 10%;
+    /* 高度调整 */
     background: #00000080;
     padding: 20px 50px;
 
     /* 将按钮的左右边框设置为圆弧 */
-    border-radius: 30px; 
+    border-radius: 30px;
     /* 圆角弧度24px */
-    transition:0.2s;
+    transition: 0.2s;
 }
 
 
 /* 对输入窗口进行修改 */
-#ui .form .item p{
+#ui .form .item p {
     font-size: 18px;
     color: white;
 }
-#ui .form .item input{
-    width: auto; /* 设置合适的宽度 */
-    border: 0; /* 首先将边界取消，方便下面修改下部边界宽度 */
-    border-bottom: 5px solid white; /* 将下边界进行修改，显示出横线效果 */
-    font-size: 18px; /* 将字体适当的变大加粗 */
-    background: #ffffff00; /* 将输入框设置为透明 */
-    color: white; /* 上面的文本颜色设置为白色，但是placeholder的颜色要单独设置 */
-    padding: 5px 10px; /* 为了placeholder的内容不是顶格显示，增加内部边界 */
+
+#ui .form .item input {
+    width: auto;
+    /* 设置合适的宽度 */
+    border: 0;
+    /* 首先将边界取消，方便下面修改下部边界宽度 */
+    border-bottom: 5px solid white;
+    /* 将下边界进行修改，显示出横线效果 */
+    font-size: 18px;
+    /* 将字体适当的变大加粗 */
+    background: #ffffff00;
+    /* 将输入框设置为透明 */
+    color: white;
+    /* 上面的文本颜色设置为白色，但是placeholder的颜色要单独设置 */
+    padding: 5px 10px;
+    /* 为了placeholder的内容不是顶格显示，增加内部边界 */
+}
+
+#ui .form .item input::placeholder {
+    color:#f1eaea80;
 }
 
 /* 对button进行美化 */
-#ui .button input{
+#ui .button input {
     /* 设置合适的按钮的长和宽 */
-    width: 150px; 
+    width: 150px;
     /* height: 30px; */
     text-transform: uppercase;
-    border: 3px solid #FFFFFF; /* 设置按钮的边界粗细和颜色 */
-    margin-top: 18px; /* 设置合适的上部外框的宽度，增加与上面的password框的距离 */
+    border: 3px solid #FFFFFF;
+    /* 设置按钮的边界粗细和颜色 */
+    margin-top: 18px;
+    /* 设置合适的上部外框的宽度，增加与上面的password框的距离 */
     text-align: center;
-    font-size: 18px; /* 修改按钮文字的大小 */
+    font-size: 18px;
+    /* 修改按钮文字的大小 */
     /* 设置按钮里面字体颜色 */
     color: #FFFFFF;
     line-height: 50px;
-    border-radius: 30px; /* 将按钮的左右边框设置为圆弧 */
+    border-radius: 30px;
+    /* 将按钮的左右边框设置为圆弧 */
     cursor: pointer;
     /* 圆角弧度24px */
-    transition:0.2s;
+    transition: 0.2s;
     /* 设置按钮背景为透明 */
-    background:rgba(0,0,0,0);   
+    background: rgba(0, 0, 0, 0);
 }
 
-#ui .forgot_password a{
+#ui .forgot_password a {
     text-align: right;
     margin-top: 20px;
     color: crimson;
 }
+
+/* 增加背景图 */
+body {
+    background: url(picture/c.jpg) no-repeat center center fixed;
+    /*兼容浏览器版本*/
+    -webkit-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
 
 
 .reg_back {
@@ -73,13 +100,13 @@
     margin: 10px;
 }
 
-.reg_left > p:first-child {
+.reg_left>p:first-child {
     /*设置段落（新用户注册）颜色和字体大小*/
     color: gray;
     font-size: 20px;
 }
 
-.reg_left > p:last-child {
+.reg_left>p:last-child {
     /*设置段落（USER REGISTER）颜色和字体大小*/
     color: #A6A6A6;
     font-size: 20px;
@@ -97,7 +124,7 @@
     margin: 30px;
 }
 
-.reg_right > p:first-child {
+.reg_right>p:first-child {
     font-size: 15px;
     color: white;
 }
@@ -112,7 +139,8 @@
     width: 100px;
     text-align: right;
     height: 40px;
-    font-size: 18px; /* 修改按钮文字的大小 */
+    font-size: 18px;
+    /* 修改按钮文字的大小 */
     color: white;
 }
 
@@ -121,7 +149,11 @@
     padding-left: 40px;
 }
 
-#username ,#password1,#password2,#Email,#code{
+#username,
+#password1,
+#password2,
+#Email,
+#code {
     /*设置输入框大小和边框*/
     width: 200px;
     height: 30px;
@@ -131,23 +163,65 @@
     padding-left: 10px;
 }
 
-#btn_sub{
+#btn_sub {
     /*注册按钮*/
     margin-left: 50px;
     background: orangered;
     color: whitesmoke;
     width: 150px;
     height: 40px;
-    border: 1px solid gray ;
+    border: 1px solid gray;
 }
 
-#btn{
+#btn {
     /*登录按钮*/
     margin-left: -10px;
     background: orangered;
     color: whitesmoke;
     width: 150px;
     height: 40px;
-    border: 1px solid gray ;
+    border: 1px solid gray;
 }
 
+/* 导航栏 */
+#nav {
+    width: 100%;
+    height: 60px;
+    background-color: #00000080;
+}
+
+/* 无序列表 */
+#nav ul {
+    float: left;
+    margin: 0px;
+    padding: 0 0 0 0;
+    width: 920px;
+    list-style: none;
+}
+
+/* 让链接横排 */
+#nav ul li {
+    display: inline;
+}
+
+/* 字体美化等 */
+#nav ul li a {
+    float: left;
+    padding: 11px 20px;
+    font-size: 28px;
+    text-align: center;
+    text-decoration: none;
+    /* background: url(../images/templatemo_menu_divider.png)        center right no-repeat; */
+    color: #fff;
+    font-family: Tahoma;
+    outline: none;
+}
+
+/* 鼠标经过该链接，变色 */
+#nav li a:hover {
+    color: cornflowerblue;
+    background-color: white;
+    /*弧度*/
+    /* border-radius: 30px;  */
+
+}
