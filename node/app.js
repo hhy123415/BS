@@ -109,6 +109,10 @@ app.post("/register", (req, res) => {
 	console.log("接收", req.body)
 })
 
+app.post("/result", (req, res) => {
+	res.redirect("/result.html");
+})
+
 //开启监听
 app.listen(8080, () => {
 	console.log("8080端口已经启动。。。")
