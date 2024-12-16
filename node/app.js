@@ -3,6 +3,8 @@ const express = require("express")
 //这个组件用于接收post数据
 const bodyParser = require("body-parser")
 var jwt = require("jsonwebtoken")
+//用于抓包
+const puppeteer = require('puppeteer');
 // 创建服务器对象
 const app = express()
 const mysql = require("mysql")
@@ -110,10 +112,69 @@ app.post("/register", (req, res) => {
 })
 
 app.post("/result", (req, res) => {
+	var name = req.body.product;
+	let suning_url = 'https://search.suning.com/' + name;
+
+	(async () => {
+		const browser = await (puppeteer.launch({ headless: true }));
+		const page = await browser.newPage();
+
+		// 进入页面
+		await page.goto(suning_url);
+		const maxPage = 2;
+
+		//sql语句
+		const sqlStr1 = "insert into products(name,image_url) values(?,?)"
+		const sqlStr2 = "insert into productprices(username,password,email) values(?,?,?)"
+
+		for (let i = 0; i < maxPage; i++) {
+			// 因为苏宁页面的商品信息用了懒加载，所以需要把页面滑动到最底部，保证所有商品数据都加载出来
+			await autoScroll(page);
+			const result = await page.evaluate(() => {
+				let itemList = document.querySelectorAll('div.product-box')
+				for (var element of itemList) {
+					const name = element.querySelector('div.title-selling-point').innerText;
+					const price = element.querySelector('span.def-price').innerText;
+					const img = element.querySelector('img').src;
+				}
+				return;
+			})
+
+			// 当当前页面并非最大页的时候，跳转到下一页
+			if (i < maxPage - 1) {
+				const nextPageUrl = await page.evaluate(() => {
+					const url = $('#nextPage').get(0).href;
+					return url;
+				});
+				await page.goto(nextPageUrl, { waitUntil: 'networkidle0' });
+			}
+
+			function autoScroll(page) {
+				return page.evaluate(() => {
+					return new Promise((resolve) => {
+						var totalHeight = 0;
+						var distance = 100;
+						// 每200毫秒让页面下滑100像素的距离
+						var timer = setInterval(() => {
+							var scrollHeight = document.body.scrollHeight;
+							window.scrollBy(0, distance);
+							totalHeight += distance;
+							if (totalHeight >= scrollHeight) {
+								clearInterval(timer);
+								resolve();
+							}
+						}, 200);
+					})
+				});
+			}
+		}
+	}
+	);
+
 	res.redirect("/result.html");
 })
 
 //开启监听
-app.listen(8080, () => {
-	console.log("8080端口已经启动。。。")
+app.listen(3452, () => {
+	console.log("3452端口已经启动。。。")
 })
