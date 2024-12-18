@@ -113,31 +113,38 @@ app.post("/register", (req, res) => {
 
 app.post("/result", (req, res) => {
 	var name = req.body.product;
-	let suning_url = 'https://search.suning.com/' + name;
+	let suning_url = 'https://search.suning.com/' + name + '/';
+
+	//console.log(suning_url);
+
 
 	(async () => {
-		const browser = await (puppeteer.launch({ headless: true }));
+		const browser = await (puppeteer.launch({ headless: false }));
 		const page = await browser.newPage();
 
 		// 进入页面
 		await page.goto(suning_url);
 		const maxPage = 2;
 
-		//sql语句
-		const sqlStr1 = "insert into products(name,image_url) values(?,?)"
-		const sqlStr2 = "insert into productprices(username,password,email) values(?,?,?)"
-
 		for (let i = 0; i < maxPage; i++) {
 			// 因为苏宁页面的商品信息用了懒加载，所以需要把页面滑动到最底部，保证所有商品数据都加载出来
 			await autoScroll(page);
 			const result = await page.evaluate(() => {
+				const arrList = []
 				let itemList = document.querySelectorAll('div.product-box')
 				for (var element of itemList) {
+					const List = {}
 					const name = element.querySelector('div.title-selling-point').innerText;
 					const price = element.querySelector('span.def-price').innerText;
 					const img = element.querySelector('img').src;
+					const pid = element.querySelector('a').getAttribute("sa-data").substring(24, 35);
+					List.name = name;
+					List.price = price;
+					List.img = img;
+					List.pid = pid;
+					arrList.push(List);
 				}
-				return;
+				return arrList;
 			})
 
 			// 当当前页面并非最大页的时候，跳转到下一页
@@ -148,6 +155,22 @@ app.post("/result", (req, res) => {
 				});
 				await page.goto(nextPageUrl, { waitUntil: 'networkidle0' });
 			}
+
+			console.log("start mysql.");
+			//sql语句
+			const sqlStr1 = "insert into products(product_id,name,image_url) values(?,?,?) ON DUPLICATE KEY UPDATE name = ?, image_url = ?"
+			const sqlStr2 = "insert into prices(username,password,email) values(?,?,?)"
+			for (var index = 0; index < result.length; index++) {
+				conn.query(sqlStr1, [result[index].pid, result[index].name, result[index].img, result[index].name, result[index].img], (err, results) => {
+					if (results) {
+					}
+					else {
+						console.error(err);
+					}
+				})
+			}
+
+			console.log("one page fetches ok.");
 
 			function autoScroll(page) {
 				return page.evaluate(() => {
@@ -168,9 +191,7 @@ app.post("/result", (req, res) => {
 				});
 			}
 		}
-	}
-	);
-
+	})();
 	res.redirect("/result.html");
 })
 

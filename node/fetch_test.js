@@ -10,6 +10,8 @@ const puppeteer = require('puppeteer');
     await page.goto('https://search.suning.com/笔记本电脑/');
     const maxPage = 2;
 
+    //console.log("fetch start.");
+
     let allInfo = [];
     for (let i = 0; i < maxPage; i++) {
         // 因为苏宁页面的商品信息用了懒加载，所以需要把页面滑动到最底部，保证所有商品数据都加载出来
@@ -77,7 +79,7 @@ const puppeteer = require('puppeteer');
     writerStream.write(JSON.stringify(allInfo, undefined, 2), 'UTF8');
     writerStream.end();
 
-    //browser.close();
+    browser.close();
 
     // 滑动屏幕，滚至页面底部
     function autoScroll(page) {
