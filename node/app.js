@@ -7,6 +7,11 @@ var jwt = require("jsonwebtoken")
 const puppeteer = require('puppeteer');
 // 创建服务器对象
 const app = express()
+
+app.engine('html', require('ejs').__express);
+app.set('view engine', 'html');
+app.set("views", "./public"); // 设置模板文件存放目录
+
 const mysql = require("mysql")
 const alert = require("alert-node")
 const conn = mysql.createConnection({
@@ -18,12 +23,11 @@ const conn = mysql.createConnection({
 })
 
 app.use(express.static(__dirname + '/' + "public"));
+app.use(express.static(__dirname + '/' + "views"));
 app.use(bodyParser.urlencoded({ extended: false }))
-
 app.use(bodyParser.json())
-// app.use(bodyParser.urlencoded({ extended: false }))
-// app.use(bodyParser.json({ type: "application/*+json" }))
-//解决跨域
+
+// 解决跨域
 app.all("*", function (req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*")
 	res.header("Access-Control-Allow-Headers", "Content-Type")
@@ -115,84 +119,93 @@ app.post("/result", (req, res) => {
 	var name = req.body.product;
 	let suning_url = 'https://search.suning.com/' + name + '/';
 
-	//console.log(suning_url);
-
-
 	(async () => {
-		const browser = await (puppeteer.launch({ headless: false }));
+		const browser = await (puppeteer.launch({ headless: true }));
 		const page = await browser.newPage();
 
 		// 进入页面
 		await page.goto(suning_url);
-		const maxPage = 2;
+		let arr = [];
 
-		for (let i = 0; i < maxPage; i++) {
-			// 因为苏宁页面的商品信息用了懒加载，所以需要把页面滑动到最底部，保证所有商品数据都加载出来
-			await autoScroll(page);
-			const result = await page.evaluate(() => {
-				const arrList = []
-				let itemList = document.querySelectorAll('div.product-box')
-				for (var element of itemList) {
-					const List = {}
-					const name = element.querySelector('div.title-selling-point').innerText;
-					const price = element.querySelector('span.def-price').innerText;
-					const img = element.querySelector('img').src;
-					const pid = element.querySelector('a').getAttribute("sa-data").substring(24, 35);
-					List.name = name;
-					List.price = price;
-					List.img = img;
-					List.pid = pid;
-					arrList.push(List);
-				}
-				return arrList;
+		// 因为苏宁页面的商品信息用了懒加载，所以需要把页面滑动到最底部，保证所有商品数据都加载出来
+		await autoScroll(page);
+		const result = await page.evaluate(() => {
+			const arrList = []
+			let itemList = document.querySelectorAll('div.product-box')
+			for (var element of itemList) {
+				const List = {}
+				const name = element.querySelector('div.title-selling-point').innerText;
+				const price = element.querySelector('span.def-price').innerText;
+				const img = element.querySelector('img').src;
+				const pid = element.querySelector('a').getAttribute("sa-data").substring(24, 35);
+				List.name = name;
+				List.price = price;
+				List.img = img;
+				List.pid = pid;
+				arrList.push(List);
+			}
+			return arrList;
+		})
+
+		//sql语句
+		const sqlStr1 = "insert into products(product_id,name,image_url) values(?,?,?) ON DUPLICATE KEY UPDATE name = ?, image_url = ?"
+		const sqlStr2 = "insert into prices(username,password,email) values(?,?,?)"
+		// for (var index = 0; index < result.length; index++) {
+		// 	conn.query(sqlStr1, [result[index].pid, result[index].name, result[index].img, result[index].name, result[index].img], (err, results) => {
+		// 		if (results) {
+		// 		}
+		// 		else {
+		// 			console.error(err);
+		// 		}
+		// 	})
+		// }
+		const queries = result.map((item) => {
+			return new Promise((resolve, reject) => {
+				conn.query(
+					sqlStr1,
+					[item.pid, item.name, item.img, item.name, item.img],
+					(err, results) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(item);
+						}
+					}
+				);
+			});
+		});
+		
+		Promise.all(queries)
+			.then((processedItems) => {
+				arr = processedItems;
+				res.type('html');
+				res.render("result", { data: arr });
 			})
+			.catch((err) => {
+				console.error(err);
+			});
+				
+		browser.close();
 
-			// 当当前页面并非最大页的时候，跳转到下一页
-			if (i < maxPage - 1) {
-				const nextPageUrl = await page.evaluate(() => {
-					const url = $('#nextPage').get(0).href;
-					return url;
-				});
-				await page.goto(nextPageUrl, { waitUntil: 'networkidle0' });
-			}
-
-			console.log("start mysql.");
-			//sql语句
-			const sqlStr1 = "insert into products(product_id,name,image_url) values(?,?,?) ON DUPLICATE KEY UPDATE name = ?, image_url = ?"
-			const sqlStr2 = "insert into prices(username,password,email) values(?,?,?)"
-			for (var index = 0; index < result.length; index++) {
-				conn.query(sqlStr1, [result[index].pid, result[index].name, result[index].img, result[index].name, result[index].img], (err, results) => {
-					if (results) {
-					}
-					else {
-						console.error(err);
-					}
+		function autoScroll(page) {
+			return page.evaluate(() => {
+				return new Promise((resolve) => {
+					var totalHeight = 0;
+					var distance = 100;
+					// 每200毫秒让页面下滑100像素的距离
+					var timer = setInterval(() => {
+						var scrollHeight = document.body.scrollHeight;
+						window.scrollBy(0, distance);
+						totalHeight += distance;
+						if (totalHeight >= scrollHeight) {
+							clearInterval(timer);
+							resolve();
+						}
+					}, 200);
 				})
-			}
-
-			console.log("one page fetches ok.");
-
-			function autoScroll(page) {
-				return page.evaluate(() => {
-					return new Promise((resolve) => {
-						var totalHeight = 0;
-						var distance = 100;
-						// 每200毫秒让页面下滑100像素的距离
-						var timer = setInterval(() => {
-							var scrollHeight = document.body.scrollHeight;
-							window.scrollBy(0, distance);
-							totalHeight += distance;
-							if (totalHeight >= scrollHeight) {
-								clearInterval(timer);
-								resolve();
-							}
-						}, 200);
-					})
-				});
-			}
+			});
 		}
 	})();
-	res.redirect("/result.html");
 })
 
 //开启监听

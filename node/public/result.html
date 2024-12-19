@@ -3,8 +3,8 @@
 
 <head>
 	<meta charset="utf-8">
-	<link rel="icon" href="/picture/me.ico?">
-	<title>商品比较网站</title>
+	<link rel="icon" href="picture/me.ico?">
+	<title>查询结果</title>
 	<link rel="stylesheet" href="ui.css">
 </head>
 
@@ -12,14 +12,33 @@
 	<!-- 实现顶部导航栏功能 -->
 	<div id="nav">
 		<ul class="item">
-			<li class="cur"><a href="/home.html">首页</a></li>
+			<li class="cur"><a href="home.html">首页</a></li>
 			<li><a href="" target="_blank">我的用户</a></li>
 		</ul>
 	</div>
 
-	<div id="ui">
-
+	<div id="ui" style="color: darkgray;">
+		<h1>查询结果</h1>
+		<table border="1">
+			<thead>
+				<tr>
+					<th>商品名称</th>
+					<th>价格</th>
+					<th>图片</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% data.forEach(item => { %>
+					<tr>
+						<td><%= item.name %></td>
+						<td><%= item.price %></td>
+						<td><img src="<%= item.img %>" alt="商品图片" width="100"></td>
+					</tr>
+				<% }); %>
+			</tbody>
+		</table>
 	</div>
+	
 
 </body>
 
