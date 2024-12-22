@@ -8,9 +8,12 @@ const puppeteer = require('puppeteer');
 // 创建服务器对象
 const app = express()
 
+app.use(express.static(__dirname + '/' + "public"));
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 app.engine('html', require('ejs').__express);
 app.set('view engine', 'html');
-app.set("views", "./public"); // 设置模板文件存放目录
+app.set("views", __dirname + '/' + "public"); // 设置模板文件存放目录
 
 const mysql = require("mysql")
 const alert = require("alert-node")
@@ -21,11 +24,6 @@ const conn = mysql.createConnection({
 	database: "bs",
 	multipleStatements: true,
 })
-
-app.use(express.static(__dirname + '/' + "public"));
-app.use(express.static(__dirname + '/' + "views"));
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
 
 // 解决跨域
 app.all("*", function (req, res, next) {
@@ -118,18 +116,15 @@ app.post("/register", (req, res) => {
 app.post("/result", (req, res) => {
 	var name = req.body.product;
 	let suning_url = 'https://search.suning.com/' + name + '/';
-
+	let dangdang_url = 'https://search.dangdang.com/?key='+name+'&show=list';
+	let arr =[];
 	(async () => {
-		const browser = await (puppeteer.launch({ headless: true }));
-		const page = await browser.newPage();
-
-		// 进入页面
-		await page.goto(suning_url);
-		let arr = [];
-
-		// 因为苏宁页面的商品信息用了懒加载，所以需要把页面滑动到最底部，保证所有商品数据都加载出来
-		await autoScroll(page);
-		const result = await page.evaluate(() => {
+		const browser = await (puppeteer.launch({ headless: false }));
+		const page1 = await browser.newPage();
+		const page2 = await browser.newPage();
+		await page1.goto(suning_url);
+		await autoScroll(page1);
+		const result1 = await page1.evaluate(() => {
 			const arrList = []
 			let itemList = document.querySelectorAll('div.product-box')
 			for (var element of itemList) {
@@ -142,24 +137,37 @@ app.post("/result", (req, res) => {
 				List.price = price;
 				List.img = img;
 				List.pid = pid;
+				List.pingtai = 'suning';
 				arrList.push(List);
 			}
 			return arrList;
 		})
 
+		await page2.goto(dangdang_url);
+		await autoScroll(page2);
+		const result2 = await page2.evaluate(() => {
+			const arrList = []
+            let itemList = document.querySelectorAll('ul.bigimg>li')
+            for (var element of itemList) {
+                const List = {}
+                const name = element.querySelector('a.pic').title;
+                const price = element.querySelector('p.price>span.search_now_price').innerText;
+                const img = element.querySelector('a.pic>img').src;
+                const pid = element.id;
+                List.name = name;
+                List.price = price;
+                List.img = img;
+                List.pid =pid;
+				List.pingtai = 'dangdang';
+                arrList.push(List);
+            }
+            return arrList;
+		})
+
 		//sql语句
 		const sqlStr1 = "insert into products(product_id,name,image_url) values(?,?,?) ON DUPLICATE KEY UPDATE name = ?, image_url = ?"
 		const sqlStr2 = "insert into prices(username,password,email) values(?,?,?)"
-		// for (var index = 0; index < result.length; index++) {
-		// 	conn.query(sqlStr1, [result[index].pid, result[index].name, result[index].img, result[index].name, result[index].img], (err, results) => {
-		// 		if (results) {
-		// 		}
-		// 		else {
-		// 			console.error(err);
-		// 		}
-		// 	})
-		// }
-		const queries = result.map((item) => {
+		const queries = (result1.concat(result2)).map((item) => {
 			return new Promise((resolve, reject) => {
 				conn.query(
 					sqlStr1,
@@ -177,7 +185,7 @@ app.post("/result", (req, res) => {
 		
 		Promise.all(queries)
 			.then((processedItems) => {
-				arr = processedItems;
+				arr=processedItems;
 				res.type('html');
 				res.render("result", { data: arr });
 			})
@@ -191,8 +199,8 @@ app.post("/result", (req, res) => {
 			return page.evaluate(() => {
 				return new Promise((resolve) => {
 					var totalHeight = 0;
-					var distance = 100;
-					// 每200毫秒让页面下滑100像素的距离
+					var distance = 500;
+					// 每200毫秒让页面下滑500像素的距离
 					var timer = setInterval(() => {
 						var scrollHeight = document.body.scrollHeight;
 						window.scrollBy(0, distance);

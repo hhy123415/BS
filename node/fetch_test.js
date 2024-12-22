@@ -7,10 +7,8 @@ const puppeteer = require('puppeteer');
     const page = await browser.newPage();
 
     // 进入页面
-    await page.goto('https://search.suning.com/笔记本电脑/');
-    const maxPage = 2;
-
-    //console.log("fetch start.");
+    await page.goto('https://search.dangdang.com/?key=西游记');
+    const maxPage = 1;
 
     let allInfo = [];
     for (let i = 0; i < maxPage; i++) {
@@ -35,22 +33,18 @@ const puppeteer = require('puppeteer');
         // }, SHOP_LIST_SELECTOR);
         const result = await page.evaluate(() => {
             const arrList = []
-            // let i=0
-            let itemList = document.querySelectorAll('div.product-box')
+            let itemList = document.querySelectorAll('ul.bigimg>li')
             for (var element of itemList) {
-                //   if(i>4){
-                //   break;
-                // }
                 const List = {}
-                const name = element.querySelector('div.title-selling-point').innerText;
-                const price = element.querySelector('span.def-price').innerText;
-                const img = element.querySelector('img').src;
-                const pid = element.querySelector('a').getAttribute("sa-data").substring(24,35);
+                const name = element.querySelector('a.pic').title;
+                const price = element.querySelector('p.price>span.search_now_price').innerText;
+                const img = element.querySelector('a.pic>img').src;
+                const pid = element.id;
                 List.name = name;
                 List.price = price;
                 List.img = img;
                 List.pid =pid;
-                arrList.push(List)
+                arrList.push(List);
             }
             return arrList;
         })
@@ -72,7 +66,7 @@ const puppeteer = require('puppeteer');
         }
     }
 
-    console.log(`共获取到${allInfo.length}台笔记本电脑信息`);
+    console.log(`共获取到${allInfo.length}信息`);
 
     // 将笔记本电脑信息写入文件
     writerStream = fs.createWriteStream('notebook.json');
@@ -86,7 +80,7 @@ const puppeteer = require('puppeteer');
         return page.evaluate(() => {
             return new Promise((resolve) => {
                 var totalHeight = 0;
-                var distance = 100;
+                var distance = 1000;
                 // 每200毫秒让页面下滑100像素的距离
                 var timer = setInterval(() => {
                     var scrollHeight = document.body.scrollHeight;

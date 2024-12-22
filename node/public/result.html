@@ -19,27 +19,55 @@
 
 	<div id="ui" style="color: darkgray;">
 		<h1>查询结果</h1>
-		<table border="1">
-			<thead>
-				<tr>
-					<th>商品名称</th>
-					<th>价格</th>
-					<th>图片</th>
-				</tr>
-			</thead>
-			<tbody>
-				<% data.forEach(item => { %>
-					<tr>
-						<td><%= item.name %></td>
-						<td><%= item.price %></td>
-						<td><img src="<%= item.img %>" alt="商品图片" width="100"></td>
-					</tr>
-				<% }); %>
-			</tbody>
-		</table>
-	</div>
-	
 
+		<div style="display: flex; justify-content: space-between;">
+			<!-- 左侧表格 (e.g., Suning) -->
+			<div>
+				<h2>苏宁商品</h2>
+				<table border="1">
+					<thead>
+						<tr>
+							<th>商品名称</th>
+							<th>价格</th>
+							<th>图片</th>
+						</tr>
+					</thead>
+					<tbody>
+						<% data.filter(item => item.pingtai === 'suning').forEach(item => { %>
+							<tr>
+								<td><%= item.name %></td>
+								<td><%= item.price %></td>
+								<td><img src="<%= item.img %>" alt="商品图片" width="100"></td>
+							</tr>
+						<% }); %>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- 右侧表格 (e.g., Dangdang) -->
+			<div>
+				<h2>当当商品</h2>
+				<table border="1">
+					<thead>
+						<tr>
+							<th>商品名称</th>
+							<th>价格</th>
+							<th>图片</th>
+						</tr>
+					</thead>
+					<tbody>
+						<% data.filter(item => item.pingtai === 'dangdang').forEach(item => { %>
+							<tr>
+								<td><%= item.name %></td>
+								<td><%= item.price %></td>
+								<td><img src="<%= item.img %>" alt="商品图片" width="100"></td>
+							</tr>
+						<% }); %>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 </body>
 
 </html>
