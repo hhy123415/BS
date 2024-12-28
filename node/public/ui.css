@@ -1,6 +1,6 @@
 #ui {
     border: 1px solid white;
-    width: 65%;
+    width: 35%;
     text-align: center;
     margin: 0 auto;
     margin-top: 10%;
@@ -14,6 +14,25 @@
     transition: 0.2s;
 }
 
+#ui_result {
+    border: 1px solid white;
+    width: 85%;
+    text-align: center;
+    margin: 0 auto;
+    margin-top: 5%;
+    /* 高度调整 */
+    background: #00000080;
+    padding: 20px 50px;
+
+    /* 将按钮的左右边框设置为圆弧 */
+    border-radius: 30px;
+    /* 圆角弧度24px */
+    transition: 0.2s;
+}
+
+#ui_result a {
+    color: darkgray;
+}
 
 /* 对输入窗口进行修改 */
 #ui .form .item p {
@@ -39,7 +58,7 @@
 }
 
 #ui .form .item input::placeholder {
-    color:#f1eaea80;
+    color: #f1eaea80;
 }
 
 /* 对button进行美化 */
@@ -223,5 +242,18 @@ body {
     background-color: white;
     /*弧度*/
     /* border-radius: 30px;  */
+}
 
+#ui_result table {
+    width: 100%;
+    border-collapse: collapse; /* 消除单元格间的间隙 */
+}
+
+#ui_result table th, 
+#ui_result table td {
+    height: 60px; /* 行高 */
+    text-align: center; /* 水平居中 */
+    vertical-align: middle; /* 垂直居中 */
+    padding: 10px; /* 单元格内边距 */
+    border: 1px solid #ddd; /* 单元格边框 */
 }

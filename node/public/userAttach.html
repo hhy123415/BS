@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="icon" href="picture/me.ico?">
+    <title>我关注的商品</title>
+    <link rel="stylesheet" href="ui.css">
+</head>
+
+<body>
+    <!-- 实现顶部导航栏功能 -->
+    <div id="nav">
+        <ul class="item">
+            <li>
+                <form id="home" action="/home" method="POST" style="display: inline;">
+                    <input type="hidden" name="username" value="<%= username %>">
+                    <a href="javascript:void(0);" onclick="document.getElementById('home').submit();">首页</a>
+                </form>
+            </li>
+            <li>
+                <form id="userAttach" action="/userAttach" method="POST" style="display: inline;">
+                    <input type="hidden" name="username" value="<%= username %>">
+                    <a href="javascript:void(0);" onclick="document.getElementById('userAttach').submit();">我的关注</a>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div id="ui_result" style="color: darkgray;">
+        <h1>我的关注</h1>
+
+        <!-- 表格开始 -->
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>商品名称</th>
+                    <th>商品图片</th>
+                    <th>平台</th>
+                    <th>最新价格(￥)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (data.length> 0) { %>
+                    <% data.forEach((item,index)=> { %>
+                        <tr>
+                            <td>
+                                <!-- 动态生成表单 id -->
+                                <form id="<%= index %>" action="/pricechart" method="POST"
+                                    style="display: inline;">
+                                    <input type="hidden" name="product_name" value="<%= item.product_name %>">
+                                    <input type="hidden" name="pid" value="<%= item.pid %>">
+                                    <input type="hidden" name="username" value="<%= username %>">
+                                    <!-- 引用对应的表单 id -->
+                                    <a href="javascript:void(0);"
+                                        onclick="document.getElementById('<%= index %>').submit();">
+                                        <%= item.product_name %>
+                                    </a>
+                                </form>
+                            </td>
+                            <td>
+                                <img src="<%= item.product_image %>" alt="<%= item.product_name %>" width="100">
+                            </td>
+                            <td>
+                                <%= item.product_platform %>
+                            </td>
+                            <td>
+                                <%= item.latest_price %>
+                            </td>
+                        </tr>
+                        <% }); %>
+                            <% } else { %>
+                                <!-- 当没有数据时，显示友好提示 -->
+                                <tr>
+                                    <td colspan="4">您还没有关注任何商品！</td>
+                                </tr>
+                                <% } %>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

@@ -12,12 +12,23 @@
 	<!-- 实现顶部导航栏功能 -->
 	<div id="nav">
 		<ul class="item">
-			<li class="cur"><a href="/home.html">首页</a></li>
-			<li><a href="" target="_blank">我的用户</a></li>
+			<li>
+				<form id="home" action="/home" method="POST" style="display: inline;">
+					<input type="hidden" name="username" value="<%= username %>">
+					<a href="javascript:void(0);" onclick="document.getElementById('home').submit();">首页</a>
+				</form>
+			</li>
+			<li>
+				<form id="userAttach" action="/userAttach" method="POST" style="display: inline;">
+					<input type="hidden" name="username" value="<%= username %>">
+					<a href="javascript:void(0);" onclick="document.getElementById('userAttach').submit();">我的关注</a>
+				</form>
+			</li>
 		</ul>
 	</div>
 
 	<div id="ui">
+		<h1 style="color:white">欢迎, <%= username %>!</h1>
 		<form action="../result" method="POST">
 			<div class="form">
 				<div class="item">
@@ -25,6 +36,7 @@
 					<input placeholder="商品名字" name="product" type="text" color="white">
 				</div>
 			</div><br>
+			<input type="hidden" name="username" value="<%= username %>">
 			<button type="submit">搜索</button>
 		</form>
 	</div>

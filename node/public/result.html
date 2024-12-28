@@ -12,12 +12,22 @@
 	<!-- 实现顶部导航栏功能 -->
 	<div id="nav">
 		<ul class="item">
-			<li class="cur"><a href="home.html">首页</a></li>
-			<li><a href="" target="_blank">我的用户</a></li>
+			<li>
+				<form id="home" action="/home" method="POST" style="display: inline;">
+					<input type="hidden" name="username" value="<%= username %>">
+					<a href="javascript:void(0);" onclick="document.getElementById('home').submit();">首页</a>
+				</form>
+			</li>
+			<li>
+				<form id="userAttach" action="/userAttach" method="POST" style="display: inline;">
+					<input type="hidden" name="username" value="<%= username %>">
+					<a href="javascript:void(0);" onclick="document.getElementById('userAttach').submit();">我的关注</a>
+				</form>
+			</li>
 		</ul>
 	</div>
 
-	<div id="ui" style="color: darkgray;">
+	<div id="ui_result" style="color: darkgray;">
 		<h1>查询结果</h1>
 
 		<div style="display: flex; justify-content: space-between;">
@@ -27,19 +37,34 @@
 				<table border="1">
 					<thead>
 						<tr>
-							<th>商品名称</th>
-							<th>价格</th>
+							<th>名称</th>
+							<th>价格(￥)</th>
 							<th>图片</th>
 						</tr>
 					</thead>
 					<tbody>
-						<% data.filter(item => item.pingtai === 'suning').forEach(item => { %>
+						<% data.filter(item=> item.pingtai === 'suning').forEach((item, index) => { %>
 							<tr>
-								<td><%= item.name %></td>
-								<td><%= item.price %></td>
+								<td>
+									<!-- 动态生成表单 id -->
+									<form id="price_sn_<%= index %>" action="/pricechart" method="POST"
+										style="display: inline;">
+										<input type="hidden" name="product_name" value="<%= item.name %>">
+										<input type="hidden" name="pid" value="<%= item.pid %>">
+										<input type="hidden" name="username" value="<%= username %>">
+										<!-- 引用对应的表单 id -->
+										<a href="javascript:void(0);"
+											onclick="document.getElementById('price_sn_<%= index %>').submit();">
+											<%= item.name %>
+										</a>
+									</form>
+								</td>
+								<td>
+									<%= item.price %>
+								</td>
 								<td><img src="<%= item.img %>" alt="商品图片" width="100"></td>
 							</tr>
-						<% }); %>
+							<% }); %>
 					</tbody>
 				</table>
 			</div>
@@ -50,19 +75,32 @@
 				<table border="1">
 					<thead>
 						<tr>
-							<th>商品名称</th>
-							<th>价格</th>
+							<th>名称</th>
+							<th>价格(￥)</th>
 							<th>图片</th>
 						</tr>
 					</thead>
 					<tbody>
-						<% data.filter(item => item.pingtai === 'dangdang').forEach(item => { %>
+						<% data.filter(item=> item.pingtai === 'dangdang').forEach((item, index) => { %>
 							<tr>
-								<td><%= item.name %></td>
-								<td><%= item.price %></td>
+								<td>
+									<form id="price_dd_<%= index %>" action="/pricechart" method="POST"
+										style="display: inline;">
+										<input type="hidden" name="product_name" value="<%= item.name %>">
+										<input type="hidden" name="pid" value="<%= item.pid %>">
+										<input type="hidden" name="username" value="<%= username %>">
+										<a href="javascript:void(0);"
+											onclick="document.getElementById('price_dd_<%= index %>').submit();">
+											<%= item.name %>
+										</a>
+									</form>
+								</td>
+								<td>
+									<%= item.price %>
+								</td>
 								<td><img src="<%= item.img %>" alt="商品图片" width="100"></td>
 							</tr>
-						<% }); %>
+							<% }); %>
 					</tbody>
 				</table>
 			</div>
