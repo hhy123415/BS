@@ -19,9 +19,8 @@ app.set('view engine', 'html');
 app.set("views", __dirname + '/' + "public"); // 设置模板文件存放目录
 
 const mysql = require("mysql")
-const alert = require("alert-node")
 const conn = mysql.createConnection({
-	host: "127.0.0.1",
+	host: "mysql",
 	user: "root",
 	password: "3452",
 	database: "bs",
@@ -42,12 +41,15 @@ app.post("/login", (req, res) => {
 	var userName = req.body.username
 	var passWord = req.body.password
 	if (!userName || !passWord) {
-		alert("请输入用户名和密码进行登录！");
+		res.send("请输入用户名或者密码");
 		return
 	}
 	const sqlStr = "select * from users WHERE userName=? AND passWord=?"
 	conn.query(sqlStr, [userName, passWord], (err, result) => {
-		if (err) throw err
+		if (err) {
+			console.log(err);
+			throw err;
+		}
 		if (result.length > 0) {
 			// 生成token
 			var token = jwt.sign(
@@ -70,7 +72,7 @@ app.post("/login", (req, res) => {
 				}
 				jwt.verify(token, "secret", (err, decode) => {
 					if (err) {
-						alert("登录失败！");
+						res.send("登录失败");
 					}
 				})
 			}
@@ -87,7 +89,7 @@ app.post("/register", (req, res) => {
 	conn.query(result, [userName], (err, results) => {
 		if (results.length >= 1) {
 			//如果有相同用户名，则注册失败，用户名重复
-			alert("用户名已存在！");
+			res.send("用户名已存在！");
 			return;
 		}
 		else {
@@ -95,18 +97,18 @@ app.post("/register", (req, res) => {
 			conn.query(result2, [email], (err, results) => {
 				if (results.length >= 1) {
 					//如果有相同用户名，则注册失败，用户名重复
-					alert("邮箱已存在！");
+					res.send("邮箱已存在！");
 					return;
 				}
 				else {
 					const sqlStr = "insert into users(username,password,email) values(?,?,?)"
 					conn.query(sqlStr, [userName, passWord, email], (err, results) => {
 						if (results && results.affectedRows === 1) {
-							alert("注册成功！");
-							res.redirect("/home.html");
+							res.type('html');
+							res.render("home", { username: userName });
 						}
 						else {
-							alert("注册失败！");
+							res.send("注册失败！");
 							return;
 						}
 					})
@@ -126,7 +128,13 @@ app.post("/result", (req, res) => {
 	let dangdang_url = 'https://search.dangdang.com/?key=' + name + '&show=list';
 	let arr = [];
 	(async () => {
-		const browser = await (puppeteer.launch({ headless: true }));
+		const browser = await (puppeteer.launch({
+			headless: true,
+			args: [
+				"--no-sandbox",
+				"--disable-setuid-sandbox"
+			]
+		}));
 		const page1 = await browser.newPage();
 		const page2 = await browser.newPage();
 		await page1.goto(suning_url);
@@ -399,7 +407,6 @@ app.post("/attach", (req, res) => {
 					console.error("Error while updating record:", err);
 					return res.status(500).json({ success: false, message: "数据库更新错误" });
 				}
-				alert("关注成功！")
 				res.type("html");
 				res.render("home", { username: username });
 			});
@@ -410,7 +417,6 @@ app.post("/attach", (req, res) => {
 					console.error("Error while inserting record:", err);
 					return res.status(500).json({ success: false, message: "数据库插入错误" });
 				}
-				alert("关注成功！")
 				res.type("html");
 				res.render("home", { username: username });
 			});
@@ -427,7 +433,6 @@ app.post("/disattach", (req, res) => {
 
 	conn.query(sqlUpdate, [username, pid], (err) => {
 		if (err) return res.status(500).json({ success: false, message: "数据库更新错误" });;
-		alert("取消关注成功！")
 		res.type("html");
 		res.render("home", { username: username });
 	});
@@ -438,7 +443,139 @@ app.listen(3452, () => {
 	console.log("3452端口已经启动。。。")
 })
 
-cron.schedule("0 12 * * *", () => {//每天12点执行
+// cron.schedule("0 12 * * *", () => {//每天12点执行
+// 	console.log("开始执行价格检查任务...");
+
+// 	// 1. 查询所有关注的商品及用户邮箱
+// 	const sqlFollowedProducts = `
+//         SELECT up.username, u.email AS user_mail, p.product_id, p.name
+//         FROM user_products AS up
+//         JOIN users AS u ON up.username = u.username
+//         JOIN products AS p ON up.product_id = p.product_id
+//         WHERE up.valid = 'y';
+//     `;
+
+// 	conn.query(sqlFollowedProducts, (err, followedProducts) => {
+// 		if (err) {
+// 			console.error("查询关注商品失败:", err);
+// 			return;
+// 		}
+
+// 		// 2. 遍历每个商品，检查价格记录
+// 		followedProducts.forEach((product) => {
+// 			const { username, user_mail, product_id, name } = product;
+
+// 			// 查询当天是否已有价格记录
+// 			const sqlTodayPrice = `
+//                 SELECT price
+//                 FROM prices
+//                 WHERE product_id = ? AND create_at = CURDATE()
+//                 LIMIT 1;
+//             `;
+
+// 			conn.query(sqlTodayPrice, [product_id], (err, todayResults) => {
+// 				if (err) {
+// 					console.error("查询当天价格失败:", err);
+// 					return;
+// 				}
+
+// 				if (todayResults.length === 0) {
+// 					// 没有当天记录，插入今天的价格记录，保持与最近记录一致
+// 					const sqlLatestPrice = `
+//                         SELECT price, platform
+//                         FROM prices
+//                         WHERE product_id = ?
+//                         ORDER BY create_at DESC
+//                         LIMIT 1;
+//                     `;
+
+// 					conn.query(sqlLatestPrice, [product_id], (err, latestResults) => {
+// 						if (err) {
+// 							console.error("查询历史价格失败:", err);
+// 							return;
+// 						}
+
+// 						const latestPrice = latestResults.length > 0 ? latestResults[0].price : null;
+// 						const platform = latestResults.length > 0 ? latestResults[0].platform : '未知平台';
+
+// 						// 模拟获取当前价格，保持与最新价格一致
+// 						const currentPrice = latestPrice || 0;
+
+// 						const sqlInsertPrice = `
+//                             INSERT INTO prices (price, platform, create_at, product_id)
+//                             VALUES (?, ?, CURDATE(), ?);
+//                         `;
+// 						conn.query(sqlInsertPrice, [currentPrice, platform, product_id], (err) => {
+// 							if (err) {
+// 								console.error("插入当天价格记录失败:", err);
+// 							} else {
+// 								console.log(`商品 ${name} 的今天价格已插入，价格: ${currentPrice}`);
+// 							}
+// 						});
+// 					});
+// 				} else {
+// 					// 如果有今天的记录，判断是否降价
+// 					const todayPrice = todayResults[0].price;
+
+// 					const sqlLatestPrice = `
+//                         SELECT price
+//                         FROM prices
+//                         WHERE product_id = ?
+//                         ORDER BY create_at DESC
+//                         LIMIT 1;
+//                     `;
+
+// 					conn.query(sqlLatestPrice, [product_id], (err, latestResults) => {
+// 						if (err) {
+// 							console.error("查询历史价格失败:", err);
+// 							return;
+// 						}
+
+// 						const latestPrice = latestResults.length > 0 ? latestResults[0].price : null;
+
+// 						if (latestPrice && todayPrice < latestPrice) {
+// 							// 如果今天价格低于历史最新价格，发送通知
+// 							console.log(`商品降价: ${name}, 原价: ${latestPrice}, 现价: ${todayPrice}`);
+
+// 							notifyUser(user_mail, name, latestPrice, todayPrice);
+// 						} else {
+// 							console.log(`商品 ${name} 未降价。`);
+// 						}
+// 					});
+// 				}
+// 			});
+// 		});
+// 	});
+// });
+
+// 通知用户：发送邮件（需要配置邮件服务）
+function notifyUser(user_mail, productName, oldPrice, newPrice) {
+	const transporter = nodemailer.createTransport({
+		host: 'smtp.qq.com',
+		secureConnection: true,
+		auth: {
+			user: "2214317260@qq.com",
+			pass: "sbaxumnpfiybdjbi", // 请确保此处的授权码正确
+		},
+	});
+
+	const mailOptions = {
+		from: "2214317260@qq.com",
+		to: user_mail, // 用户的邮箱
+		subject: "商品降价通知",
+		text: `您关注的商品 "${productName}" 已降价！\n原价: ￥${oldPrice}\n现价: ￥${newPrice}\n快去抢购吧！`,
+	};
+
+	transporter.sendMail(mailOptions, (err, info) => {
+		if (err) {
+			console.error("邮件发送失败:", err);
+		} else {
+			console.log("邮件发送成功:", info.response);
+		}
+	});
+}
+
+cron.schedule("30 * * * * *", () => {//每分钟第30秒执行，test
     console.log("开始执行价格检查任务...");
 
     // 1. 查询所有关注的商品及用户邮箱
@@ -517,7 +654,7 @@ cron.schedule("0 12 * * *", () => {//每天12点执行
                         FROM prices
                         WHERE product_id = ?
                         ORDER BY create_at DESC
-                        LIMIT 1;
+                        LIMIT 2;
                     `;
 
                     conn.query(sqlLatestPrice, [product_id], (err, latestResults) => {
@@ -526,7 +663,7 @@ cron.schedule("0 12 * * *", () => {//每天12点执行
                             return;
                         }
 
-                        const latestPrice = latestResults.length > 0 ? latestResults[0].price : null;
+                        const latestPrice = latestResults.length > 1 ? latestResults[1].price : null;
 
                         if (latestPrice && todayPrice < latestPrice) {
                             // 如果今天价格低于历史最新价格，发送通知
@@ -542,135 +679,3 @@ cron.schedule("0 12 * * *", () => {//每天12点执行
         });
     });
 });
-
-// 通知用户：发送邮件（需要配置邮件服务）
-function notifyUser(user_mail, productName, oldPrice, newPrice) {
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.qq.com',
-        secureConnection: true,
-        auth: {
-            user: "2214317260@qq.com", 
-            pass: "sbaxumnpfiybdjbi", // 请确保此处的授权码正确
-        },
-    });
-
-    const mailOptions = {
-        from: "2214317260@qq.com",
-        to: user_mail, // 用户的邮箱
-        subject: "商品降价通知",
-        text: `您关注的商品 "${productName}" 已降价！\n原价: ￥${oldPrice}\n现价: ￥${newPrice}\n快去抢购吧！`,
-    };
-
-    transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            console.error("邮件发送失败:", err);
-        } else {
-            console.log("邮件发送成功:", info.response);
-        }
-    });
-}
-
-// cron.schedule("30 * * * * *", () => {//每分钟第30秒执行，test
-//     console.log("开始执行价格检查任务...");
-
-//     // 1. 查询所有关注的商品及用户邮箱
-//     const sqlFollowedProducts = `
-//         SELECT up.username, u.email AS user_mail, p.product_id, p.name
-//         FROM user_products AS up
-//         JOIN users AS u ON up.username = u.username
-//         JOIN products AS p ON up.product_id = p.product_id
-//         WHERE up.valid = 'y';
-//     `;
-
-//     conn.query(sqlFollowedProducts, (err, followedProducts) => {
-//         if (err) {
-//             console.error("查询关注商品失败:", err);
-//             return;
-//         }
-
-//         // 2. 遍历每个商品，检查价格记录
-//         followedProducts.forEach((product) => {
-//             const { username, user_mail, product_id, name } = product;
-
-//             // 查询当天是否已有价格记录
-//             const sqlTodayPrice = `
-//                 SELECT price
-//                 FROM prices
-//                 WHERE product_id = ? AND create_at = CURDATE()
-//                 LIMIT 1;
-//             `;
-
-//             conn.query(sqlTodayPrice, [product_id], (err, todayResults) => {
-//                 if (err) {
-//                     console.error("查询当天价格失败:", err);
-//                     return;
-//                 }
-
-//                 if (todayResults.length === 0) {
-//                     // 没有当天记录，插入今天的价格记录，保持与最近记录一致
-//                     const sqlLatestPrice = `
-//                         SELECT price, platform
-//                         FROM prices
-//                         WHERE product_id = ?
-//                         ORDER BY create_at DESC
-//                         LIMIT 1;
-//                     `;
-
-//                     conn.query(sqlLatestPrice, [product_id], (err, latestResults) => {
-//                         if (err) {
-//                             console.error("查询历史价格失败:", err);
-//                             return;
-//                         }
-
-//                         const latestPrice = latestResults.length > 0 ? latestResults[0].price : null;
-//                         const platform = latestResults.length > 0 ? latestResults[0].platform : '未知平台';
-
-//                         // 模拟获取当前价格，保持与最新价格一致
-//                         const currentPrice = latestPrice || 0;
-
-//                         const sqlInsertPrice = `
-//                             INSERT INTO prices (price, platform, create_at, product_id)
-//                             VALUES (?, ?, CURDATE(), ?);
-//                         `;
-//                         conn.query(sqlInsertPrice, [currentPrice, platform, product_id], (err) => {
-//                             if (err) {
-//                                 console.error("插入当天价格记录失败:", err);
-//                             } else {
-//                                 console.log(`商品 ${name} 的今天价格已插入，价格: ${currentPrice}`);
-//                             }
-//                         });
-//                     });
-//                 } else {
-//                     // 如果有今天的记录，判断是否降价
-//                     const todayPrice = todayResults[0].price;
-
-//                     const sqlLatestPrice = `
-//                         SELECT price
-//                         FROM prices
-//                         WHERE product_id = ?
-//                         ORDER BY create_at DESC
-//                         LIMIT 2;
-//                     `;
-
-//                     conn.query(sqlLatestPrice, [product_id], (err, latestResults) => {
-//                         if (err) {
-//                             console.error("查询历史价格失败:", err);
-//                             return;
-//                         }
-
-//                         const latestPrice = latestResults.length > 1 ? latestResults[1].price : null;
-
-//                         if (latestPrice && todayPrice < latestPrice) {
-//                             // 如果今天价格低于历史最新价格，发送通知
-//                             console.log(`商品降价: ${name}, 原价: ${latestPrice}, 现价: ${todayPrice}`);
-
-//                             notifyUser(user_mail, name, latestPrice, todayPrice);
-//                         } else {
-//                             console.log(`商品 ${name} 未降价。`);
-//                         }
-//                     });
-//                 }
-//             });
-//         });
-//     });
-// });

@@ -30,7 +30,7 @@
 	<div id="ui">
 		<h1 style="color: white;">商品价格图: <%= product_name %>
 		</h1> <!-- 显示商品名称 -->
-		<canvas id="myChart""></canvas>
+		<canvas id="myChart"></canvas>
 		<!-- 关注/取消关注按钮 -->
 		<div id=" button-container">
 			<% if (isAttached) { %>
@@ -51,9 +51,9 @@
 	</div>
 	</div>
 
-	<script src=" https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="chart.js/dist/chart.umd.js"></script>
 	<script>
-		// 获取后端传递的数据
+		//获取后端传递的数据
 		const dates = "<%=dates%>".split(','); // 确保正确传递后端数据
 		const prices = "<%=prices%>".split(','); // 确保正确传递后端数据
 
@@ -104,6 +104,7 @@
 				}
 			}
 		});
+	
 	</script>
 </body>
 
